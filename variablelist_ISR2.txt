@@ -1,0 +1,7 @@
+RISR 0 1 10 RISR Entries/0.1 Plot
+dphiISRI 0 3.2 32 dphiISRI Entries/0.1rad Plot
+PTI 0 300 15 PTI Entries/20GeV Plot
+PTISR 0 400 10 PTISR Entries/40GeV Plot
+PTCM 0 400 10 PTCM Entries/40GeV Plot
+MZ 0 500 25 MZ Entries/20GeV Plot
+MJ 0 500 25 MJ Entries/20GeV Plot
