@@ -25,7 +25,7 @@ import math
 import argparse
 from rootpy import ROOT 
 from rootpy.io import root_open 
-from rootpy.plotting import F1, Hist, HistStack, Canvas, Legend, Pad
+from rootpy.plotting import F1, Hist, HistStack, Canvas, Legend, Pad,Hist2D
 from rootpy.plotting.shapes import Line,Arrow
 from rootpy.plotting.utils  import draw
 from rootpy.plotting.views import StackView
@@ -109,8 +109,11 @@ style.SetTitleSize(titlesize,"y")
 style.SetTitleYOffset(1)
 style.SetTitleXOffset(1)
 set_style(style)
-ROOT.gStyle.SetPadBottomMargin(0.)
+ROOT.gStyle.SetPadBottomMargin(0.2)
+ROOT.gStyle.SetPadRightMargin(0.2)
 ROOT.gStyle.SetLineWidth(4)
+ROOT.gStyle.SetPalette(1);
+#ROOT.gStyle.SetPalette("kBird")
 
 #ROOT.gPad.SetBorderWidth(5)  
 
@@ -203,6 +206,7 @@ if Region in ABCDlist:
 if doregionbreakdown:
     variable_list_file = "variable_cutflow.txt"
 
+variable_list_file = "variablelist_2D.txt"
 #variable_list_file = "variable21.txt"
 if "SR2L" in Region:
     plotData = 0
@@ -344,6 +348,8 @@ def plotbackgrounds(stack):
     errorband.Draw("SAME E2P")
 
 
+def plotzjets(hist):
+    hist.Draw("colz")
 
 
 def plotsignalobjects(backgroundstacks):
@@ -507,8 +513,7 @@ def generatedatalegend(inputdatastack,inputstack):
 
 
         if plotData:
-            if Region not in BLINDEDLIST:
-                datalegend.AddEntry(inputdatastack.sum,label = "Data (" + str(round(inputdatastack.sum.integral(overflow=True),1)) +")",style ="EP")
+            datalegend.AddEntry(inputdatastack.sum,label = "Data (" + str(round(inputdatastack.sum.integral(overflow=True),1)) +")",style ="EP")
 
         errorband = inputstack.sum.Clone()
         errorband.SetLineWidth(10)
@@ -797,6 +802,7 @@ treeDict2 = {}
 rootfileDictionary = {}
 for sample in sampleDictionary:
     #print "sample: " + sample
+    if sample != 'Zjets1516':continue 
     Year        = sampleDictionary[sample]['year']
     Filename    = sampleDictionary[sample]['filename']
     Location    = sampleLocationDictionary[Year]
@@ -822,52 +828,10 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
         #print "[VARIABLE][" + variable + "]"
         tn = time.time()
         print "[VARIABLE][" + variable  + "]" + str(round(tn - t0,0)) + "seconds"
- 
-        canvas = Canvas(width=canvaswidth,height=int((1-(1-doRatio)*0.2)*canvasheight))
-        canvas.SetFrameBorderMode(0)
-
-        topmargins    = (1.0 , 1.0 )
-        bottommargins = (0.0  , 0.4  )
-        leftmargins   = (0.0  , 0.0  )
-        rightmargins  = (0.0  , 0.0  )
-        
-        top    = topmargins[doRatio]
-        bottom = bottommargins[doRatio]
-        left   = leftmargins[doRatio]
-        right  = 1 - rightmargins[doRatio]
- 
-        canvas.cd()
-
-        histpad = Pad(left,bottom,right, top,color="white",bordersize =5)
-        if not doRatio:
-            histpad.SetBottomMargin(0.15)
-
-        histpad.SetFrameBorderMode(0)
-
-        histpad.Draw()
-        histpad.SetLogy()
-        histpad.cd()
-        histpad.SetFrameBorderSize(2)
-        histpad.SetFrameLineWidth(2);
-
-        if(doRatio):
-           # print "initialisation of ratio"
-            canvas.cd()
-            ratiopad    = Pad(left,0.00,right,bottom-0.02)
-            ratiopad.SetBottomMargin(0.33)
-            ratiopad.SetTopMargin(0.03)
-            ratiopad.SetFrameLineWidth(2);
-            ratiopad.Draw()
-            histpad.cd()
+        doRatio = 0 
 
 
-        yminimum, ymaximum = RegionYrange(Region)
-        stack   = HistStack()
-        datastack = HistStack() 
-        
 
-        stack.SetMinimum(yminimum)
-        stack.SetMaximum(ymaximum)
         samples = []
         backgrounds = []
         signals = []
@@ -878,6 +842,7 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
         backgroundstacks = {}
        # print "pre sampleDictionary"
         for sample in sampleDictionary:
+            if sample != 'Zjets1516':continue 
             if Region in BLINDEDLIST and sample is 'Data': continue 
             LegendEntry = sampleDictionary[sample]['legend']
             Type = sampleDictionary[sample]['type']
@@ -885,206 +850,219 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
         #    print "post initialisation of backgroundstakcs"
 
         #"pre second sample dictionary"
-        for sample in sampleDictionary:
-        #    print "pre blinded check"
-            if Region in BLINDEDLIST and sample is 'Data': continue 
-            #print "[BACKGROUND][" + sample + "]" 
-            tn = time.time()
-            print "[DRAWING][" + sample  + "]" + str(round(tn - t0,0)) + "seconds"
- 
-            Name        = sample 
-            Type        = sampleDictionary[sample]['type']
-            Year        = sampleDictionary[sample]['year']
-            LegendEntry = sampleDictionary[sample]['legend']
-            FillColor   = sampleDictionary[sample]['fillcolor']
-            #LineColor   = sampleDictionary[sample]['linecolor']
-            rootfile     = sampleDictionary[sample]['filename']
 
-            Luminosity = LuminosityDictionary[Type][Year]
-            Weight     = WeightDictionary[Type]
-            if Region in BLINDEDLIST and LegendEntry == 'Data':continue
-            if Region in BLINDEDLIST and Type        == 'data':continue
-            if Region in BLINDEDLIST and "data" in rootfile: continue 
-            total = Cut("1")
-            for cut in Cutlist:
-                if donminus1:
-                    if variable in cut:continue 
-                    total = total & cut 
-                else: 
-                    total = total & cut 
-
-            if donminus1 == 0 and skimmed == 0 :
-                #print "skimming"
-                #treeDict[sample].CopyTree(total)
-                #mylistof_events = ROOT.TEntryList()
-                #mylist = ROOT.TEntryList()
-                #print "treeEntries1" + str(treeDict[sample].GetEntries())
-                #mylist = ROOT.R.TEntryList("mylist","mylist")
-                #treeDict[sample].Draw(">>mylist",total,"entrylist")
-                #mylist.Print()
-               # print "type: " + str(type(treeDict[sample]))
-                print "DEFAULT: " + str(treeDict[sample].GetEntries())
-                print "type: " + str(type(treeDict[sample]))
-                #treeDict2[sample] =
-                #if Year == '1516' or Year == '18' or Year == "17":
-                #    treeDict[sample] = treeDict[sample].CopyTree(total)
-                #    print "type: " + str(type(treeDict[sample]))
-                #    asrootpy(treeDict[sample])
-                #    print "type: " + str(type(treeDict[sample]))
-                    #treeDict[sample] = treeDict2[sample]
-                    #asrootpy(treeDict[sample])
-                    #treeDict[sample] = treeDict2[sample]
-                    #print "type: " + str(type(treeDict2[sample]))
-                    #print "type2: " + str(type(treeDict2[sample]))
-                #    print "SKIMMED:  " + str(treeDict[sample].GetEntries())
-                #treeDict[sample] = treeDict2[sample]
-                #treeDict[sample].CopyTree(total)
-                #mylistof_events = treeDict[sample].GetEntryList()
-                #ROOT.R.TEntryList("mylist",mylist)
-                #print str(type(mylist))
-                #print str(mylist.GetN())
-                #ROOT.R.gDirectory.GetObject("mylist",mylist)
-                #ROOT.R.gDirectory.ls()
-                #GetObject("mylistof_events",mylistof_events)
-                #print str(mylist.GetN())
-                #mylist.Print()
-                #,"entrylist")
-                #mylistof_events.SetReapplyCut()
-               # treeDict[sample].SetEntryList(mylistof_events)
-                #treeDict[sample].SetEntriesToProcess(mylistof_events)
-                #treeDict[sample].SetEventList(mylist)
-                #treeDict[sample].GetEntriesToProcess(mylistof_events)
-                print "treeEntries2" + str(treeDict[sample].GetEntries())
- 
-                
-
-            SelectionCriteria = Cut(Luminosity) * Cut(Weight) * total
-            histogram = "Hist(" + nbins+ "," + xmin +"," + xmax+ ")"
+        for (variable2,xmin2,xmax2,nbins2,xtitle2,ytitle2,variable_bool2) in zip(variable_list,xmin_list,xmax_list,nbins_list,xtitle_list,ytitle_list,variable_bool_list):
+            if variable_bool != 'Plot': continue 
 
 
-            #histogram = Hist(int(nbins),float(xmin),float(xmax))
-            if treeDict[sample].GetEntries() == 0:
-                temphist = Hist(int(nbins),float(xmin),float(xmax))
-            else: 
-                temphist = treeDict[sample].Draw(variable + ">>" + histogram , selection = SelectionCriteria)
 
+            canvas = Canvas(width=canvaswidth,height=int((1-(1-doRatio)*0.2)*canvasheight))
+            #canvas.SetFrameBorderMode(0)
 
-                sampleStyleFunc(temphist,Type)
-                
-                #temphist.SetName(Name)
-                temphist.overflow(1)
-                temphist.merge_bins([(0, 1), (-2, -1)])
-                temphist.Sumw2()
-           # print "prebackgroundstacks"
-            backgroundstacks[LegendEntry].Add(temphist.Clone())
-
-        #  for stackGroup in backgroundstacks:
-        #      for hist in stackGroup:
-        #          for i in range(1,int(nbins)+1):
-        #              if hist.GetBinContent(i) < 0:
-        #                  hist.SetBinContent(i) = 0
-        skimmed = 1 
-
-
-        for key in backgroundstacks:
-            print "key: " + str(key )
-            if 'Data' not in key:
-                if 'Signal' in key:continue
-                stack.Add(backgroundstacks[key].sum.Clone())
-            if 'Data' in key :
-                datastack.Add(backgroundstacks[key].sum.Clone())
- 
-        if doregionbreakdown:
-            if variable == "nJet20":
-                cutflowstring, yieldstring = produceRegionBreakdown(backgroundstacks,stack,datastack,Region)
-                print "[BREAKDOWN][PRODUCED]"
-                print cutflowstring        
-                print yieldstring 
-
-
-        
-        for hist in stack:
-            for i in range(1,int(nbins)+1):
-                if hist.GetBinContent(i) < 0.0:
-                    print "negative bin content set to 0.0"
-                    hist.SetBinContent(i,0.0) 
-
-
-        plotbackgrounds(stack)
-        if Region not in BLINDEDLIST:
-            plotdata(datastack) 
-        plotsignalobjects(backgroundstacks)
-        drawPlotInformation(DataPeriods,atlasStatus,RegionLabel)
-
-
-        generatedatalegend(datastack,stack)
-        generatebackgroundlegend(backgroundstacks) 
-        
-        stack.yaxis.SetTitle(ytitle)
-        stack.yaxis.SetTitleOffset(2)
-        stack.yaxis.set_label_size(int(canvasheight*labelscale*1.5))
+            topmargins    = (1.0 , 1.0 )
+            bottommargins = (0.1  , 0.4  )
+            leftmargins   = (0.0  , 0.0  )
+            rightmargins  = (0.1  , 0.0  )
+            
+            top    = topmargins[doRatio]
+            bottom = bottommargins[doRatio]
+            left   = leftmargins[doRatio]
+            right  = 1 - rightmargins[doRatio]
     
-        canvas.cd()
-        if doRatio:
-            stack.xaxis.set_label_size(0)
-        else:
-            stack.xaxis.SetTitle(xtitle)
-            stack.xaxis.SetTitleOffset(1.5)
-            stack.xaxis.set_label_size(int(canvasheight*labelscale*1.5))
+            canvas.cd()
 
-        canvas.cd()
-        if Region in CRlist and donminus1 == 0 :
-            #print "PENDING"
-            NormalisationFactor,NFerror = calculateNFs(backgroundstacks,datastack)
-            tn = time.time()
- 
-            print "[NF][" + str(round(NormalisationFactor,3)) + "+/-" + str(round(NFerror,3)) + "]" + str(round(tn - t0,0)) + "seconds"
-            topleftplotlabel('NF: ' + str(round(NormalisationFactor,3)) + "\pm" + str(round(NFerror,3)) ) 
-        elif Region in ABCDlist and donminus1 == 0 :
-            #print "PENDING"
-            tn = time.time()
- 
-            DataEstimate,DataEstimateError = calculateNFs(backgroundstacks,data)
-            print "[NF][" + str(round(DataEstimate,3)) + "+/-" + str(round(DataEstimateError,3)) + "]"+ str(round(tn - t0,0)) + "seconds"
-            topleftplotlabel('Data-MC(non): ' + str(round(DataEstimate,3)) + "\pm" + str(round(DataEstimateError,3)) ) 
-        else:
-            topleftplotlabel('NF Not Calculated')
-     
-        if doRatio:
-            ratiopad.cd()
-            plotratio(datastack,stack)
-            tn = time.time()
-            print "[RATIOPAD][PLOTTED]" + str(round(tn - t0,0)) + "seconds"
-            ratiopad.Modified()
-            ratiopad.Update()
-        #outputfolder = os.path.join(outputfolder,"Data" + DataPeriods ) 
+            #histpad = Pad(left,0.3,right, top,color="white",bordersize =5)
+            
+            #histpad.SetBottomMargin(0.3)
+
+            #histpad.SetFrameBorderMode(0)
+
+            #histpad.Draw()
+            #histpad.SetLogy()
+            #histpad.cd()
+            #histpad.SetFrameBorderSize(2)
+            #histpad.SetFrameLineWidth(2);
+
+            for sample in sampleDictionary:
+            #    print "pre blinded check"
+                if sample != "Zjets1516": continue 
+                if Region in BLINDEDLIST and sample is 'data1516': continue 
+                #print "[BACKGROUND][" + sample + "]" 
+                tn = time.time()
+                print "[DRAWING][" + sample  + "]" + str(round(tn - t0,0)) + "seconds"
+    
+                Name        = sample 
+                Type        = sampleDictionary[sample]['type']
+                Year        = sampleDictionary[sample]['year']
+                LegendEntry = sampleDictionary[sample]['legend']
+                FillColor   = sampleDictionary[sample]['fillcolor']
+                #LineColor   = sampleDictionary[sample]['linecolor']
+                rootfile     = sampleDictionary[sample]['filename']
+
+                Luminosity = LuminosityDictionary[Type][Year]
+                Weight     = WeightDictionary[Type]
+
+                total = Cut("1")
+                for cut in Cutlist:
+                    if (variable  in cut) or (variable2 in cut)  : continue 
+                  
+                    #if variable2 in cut :continue 
+                    total = total & cut 
+
+                print total
+#                if donminus1 == 0 and skimmed == 0 :
+                    #print "skimming"
+                    #treeDict[sample].CopyTree(total)
+                    #mylistof_events = ROOT.TEntryList()
+                    #mylist = ROOT.TEntryList()
+                    #print "treeEntries1" + str(treeDict[sample].GetEntries())
+                    #mylist = ROOT.R.TEntryList("mylist","mylist")
+                    #treeDict[sample].Draw(">>mylist",total,"entrylist")
+                    #mylist.Print()
+                # print "type: " + str(type(treeDict[sample]))
+#                    print "DEFAULT: " + str(treeDict[sample].GetEntries())
+#                    print "type: " + str(type(treeDict[sample]))
+                    #treeDict2[sample] =
+                    #if Year == '1516' or Year == '18' or Year == "17":
+                #treeDict[sample] = treeDict[sample].CopyTree(total)     
+                #asrootpy(treeDict[sample])
+                    #    print "type: " + str(type(treeDict[sample]))
+                        #treeDict[sample] = treeDict2[sample]
+                        #asrootpy(treeDict[sample])
+                        #treeDict[sample] = treeDict2[sample]
+                        #print "type: " + str(type(treeDict2[sample]))
+                        #print "type2: " + str(type(treeDict2[sample]))
+                    #    print "SKIMMED:  " + str(treeDict[sample].GetEntries())
+                    #treeDict[sample] = treeDict2[sample]
+                    #treeDict[sample].CopyTree(total)
+                    #mylistof_events = treeDict[sample].GetEntryList()
+                    #ROOT.R.TEntryList("mylist",mylist)
+                    #print str(type(mylist))
+                    #print str(mylist.GetN())
+                    #ROOT.R.gDirectory.GetObject("mylist",mylist)
+                    #ROOT.R.gDirectory.ls()
+                    #GetObject("mylistof_events",mylistof_events)
+                    #print str(mylist.GetN())
+                    #mylist.Print()
+                    #,"entrylist")
+                    #mylistof_events.SetReapplyCut()
+                # treeDict[sample].SetEntryList(mylistof_events)
+                    #treeDict[sample].SetEntriesToProcess(mylistof_events)
+                    #treeDict[sample].SetEventList(mylist)
+                    #treeDict[sample].GetEntriesToProcess(mylistof_events)
+                print "treeEntries2" + str(treeDict[sample].GetEntries())
+    
+                    
+
+                SelectionCriteria = Cut(Luminosity) * Cut(Weight) * total
+                print variable
+                print variable2
+                print SelectionCriteria 
+                histogram = "Hist(" + nbins+ "," + xmin +"," + xmax+ ")"
+
+
+                histogram2D = Hist2D(int(nbins),float(xmin),float(xmax),int(nbins2),float(xmin2),float(xmax2))
+                temphist2D = Hist2D(int(nbins),float(xmin),float(xmax),int(nbins2),float(xmin2),float(xmax2))
+                histogram2D.SetName("hist2")
+                #histogram = Hist(int(nbins),float(xmin),float(xmax))
+                if treeDict[sample].GetEntries() == 0:
+                    temphist = Hist(int(nbins),float(xmin),float(xmax))
+                else: 
+
+                    #histogram2D.SetMinimum(0.0)
+                    #histogram2D.SetMaximum(3.0)
+
+                    histogram2D = treeDict[sample].Draw(variable + ":" + variable2 ,hist = histogram2D, selection = SelectionCriteria)
+
+                    #histogram2D.SetMinimum(0.0)
+                    #histogram2D.SetMaximum(3.0)
+                    histogram2D.Draw("colz")
+                    histogram2D.ProfileX().Draw("SAME")
+                    #histogram2D.SetMinimum(0.0)
+                    #histogram2D.SetMaximum(3.0)
+
+                   #sampleStyleFunc(temphist,Type)
+                    
+                    #temphist.SetName(Name)
+                    #temphist.overflow(1)
+                    #temphist.merge_bins([(0, 1), (-2, -1)])
+                    #temphist.Sumw2()
+            # print "prebackgroundstacks"
+
+
+                    #histpad.Update()
+                    #histpad.Modified()
+                    #canvas.clear()
+                    #canvas.cd()
+                    canvas.Update()
+                    canvas.Modified()
+
+                    #plotzjets(temphist)
+                    ROOT.gPad.Update()
+                    #palette = asrootpy(temphist.GetListOfFunctions().FindObject("palette"))
+                    
+                    #palette.SetY2NDC(0.7);
+                    #palette.Draw("SAME")
+                    #dataoutputfolder = os.path.join(outputfolder,"Data" + DataPeriods )
+                    histogram2D.xaxis.SetTitle(xtitle)
+                    histogram2D.xaxis.SetTitleOffset(1.5)
+                    histogram2D.xaxis.set_label_size(int(canvasheight*labelscale*1.5))
+
+                    histogram2D.yaxis.SetTitle(xtitle2)
+                    histogram2D.yaxis.SetTitleOffset(1.5)
+                    histogram2D.yaxis.set_label_size(int(canvasheight*labelscale*1.5))
+                    #canvas.cd()
+                    canvas.Update()
+                    canvas.Modified()
+
+                    #os.system("mkdir -p " +	dataoutputfolder  )
+                    dataoutputfolder = os.path.join(outputfolder,"Data" + DataPeriods,Region)
+                    os.system("mkdir -p " + dataoutputfolder )
+                    canvas.Print(dataoutputfolder + "/log_"+ variable.replace("/","_")+ "_" + variable2.replace("/","_") + "_" + Region + "_"+systematics+".png")
+
+
+                #backgroundstacks[LegendEntry].Add(temphist.Clone())
+
+        #plotzjets(hist)
+
+      #  skimmed = 1 
+
+
         
-        #outputfolder + "/ Data" + DataPeriods
-        dataoutputfolder = os.path.join(outputfolder,"Data" + DataPeriods )
-        os.system("mkdir -p " +	dataoutputfolder  )
-        os.system("mkdir -p " + os.path.join(dataoutputfolder,Region) )
-        os.system("mkdir -p " + os.path.join(dataoutputfolder,Region,"N-1") )
+
+       # stack.yaxis.SetTitle(ytitle)
+       # stack.yaxis.SetTitleOffset(2)
+       # stack.yaxis.set_label_size(int(canvasheight*labelscale*1.5))
+    
+       # canvas.cd()
 
 
 
-        filenamevariable = variable.replace("/","_").replace("_1000","")
-        if donminus1:
-            canvas.Print(dataoutputfolder + "/" + Region + "/N-1/log_"+ filenamevariable+ "_" + Region + "_"+systematics+".png")
-        else:
-            canvas.Print(dataoutputfolder + "/" + Region + "/log_"+ filenamevariable+ "_" + Region + "_"+systematics+".png")
+        #dataoutputfolder = os.path.join(outputfolder,"Data" + DataPeriods )
+        #os.system("mkdir -p " +	dataoutputfolder  )
+        #os.system("mkdir -p " + os.path.join(dataoutputfolder,Region) )
+        #os.system("mkdir -p " + os.path.join(dataoutputfolder,Region,"N-1") )
+
+
+
+       # filenamevariable = variable.replace("/","_").replace("_1000","")
+       # if donminus1:
+       #     canvas.Print(dataoutputfolder + "/" + Region + "/N-1/log_"+ filenamevariable+ "_" + variable2 + "_" + Region + "_"+systematics+".png")
+       # else:
+       #     canvas.Print(dataoutputfolder + "/" + Region + "/log_"+ filenamevariable+ "_" + variable2 + "_" + Region + "_"+systematics+".png")
         #canvas.Print(dataoutputfolder + "/" + Region + "/log_"+ filenamevariable+ "_" + Region + "_"+systematics+".pdf")
         #canvas.Print(dataoutputfolder + "/" + Region + "/log_"+ filenamevariable+ "_" + Region + "_"+systematics+".eps")
-        histpad.SetLogy(0)
-        stack.SetMinimum(0.0)
-        stack.SetMaximum(3*stack.sum.GetMaximum())
+     #   histpad.SetLogy(0)
+        #stack.SetMinimum(0.0)
+        #stack.SetMaximum(3*stack.sum.GetMaximum())
         #canvas.Print(dataoutputfolder + "/" + Region + "/lin_"+ filenamevariable+ "_" + Region + "_"+systematics+".png")
        # canvas.Print(dataoutputfolder + "/" + Region + "/lin_"+ filenamevariable+ "_" + Region + "_"+systematics+".pdf")
       #  canvas.Print(dataoutputfolder + "/" + Region + "/lin_"+ filenamevariable+ "_" + Region + "_"+systematics+".eps")
 
-        tn = time.time()
+     #   tn = time.time()
         #print "[CANVAS][PLOTTED]"
-        print "[CANVAS][PLOTTED]" + str(round(tn - t0,0)) + "seconds"
-        t0 = time.time() 
+     #   print "[CANVAS][PLOTTED]" + str(round(tn - t0,0)) + "seconds"
+     #   t0 = time.time() 
 
 
 

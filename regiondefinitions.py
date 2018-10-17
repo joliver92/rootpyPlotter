@@ -35,8 +35,16 @@ def retreiveRegionInformation(Region,sampleType="MC"):
 
     if Region == "CR2L-VV":
         cutlist = [Cut("1"), 
-                   Cut("(is4Lep2Jet || (is3Lep2Jet && mTl3>70 && mTl3<100)) && lept1sign_VR*lept2sign_VR<0 && abs(lept1sign_VR)==abs(lept2sign_VR) && lept1Pt_VR>25 && lept2Pt_VR>25 && jetPt[0]>30 && jetPt[1]>30 && nJet20 >= 2"),
-                   Cut("nBJet20_MV2c10_FixedCutBEff_77 ==0"), Cut("mll_RJ_VR>80 &&mll_RJ_VR<100"),
+                   Cut("(is4Lep2Jet || (is3Lep2Jet && mTl3>70 && mTl3<100))"),
+                   Cut("lept1sign_VR*lept2sign_VR<0"),
+                   Cut("abs(lept1sign_VR)==abs(lept2sign_VR) "),
+                   Cut("lept1Pt_VR>25"),
+                   Cut("lept2Pt_VR>25"),
+                   Cut("jetPt[0]>30"),
+                   Cut("jetPt[1]>30"),
+                   Cut("nJet20 >= 2"),
+                   Cut("nBJet20_MV2c10_FixedCutBEff_77 ==0"), 
+                   Cut("mll_RJ_VR>80 &&mll_RJ_VR<100"),
                    Cut("mjj>20"),
                    Cut("R_minH2P_minH3P_VR>0.2"),
                    Cut("dphiVP_VR>0.3 && dphiVP_VR<2.8"),
@@ -261,7 +269,9 @@ def retreiveRegionInformation(Region,sampleType="MC"):
     if Region =="SR2L_ISR":
         RegionLabel ="SR2L_ISR"
         cutlist   = [ Cut("1"),
-                        Cut("is2L2JInt==1 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jetPt[0]>30 && jetPt[1]>30 && nBJet20_MV2c10_FixedCutBEff_77==0 && (nJet20 > 2) && (MZ>80 && MZ<100)"),
+                        Cut("is2L2JInt==1 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jetPt[0]>30 && jetPt[1]>30 && nBJet20_MV2c10_FixedCutBEff_77==0"),
+                        Cut("(nJet20 > 2)"),
+                        Cut("(MZ>80 && MZ<100)"),
                         Cut(" MJ>50 && MJ<110"),
                         Cut("NjS==2 &&NjISR<3"),
                         Cut("dphiISRI>2.8"),
