@@ -25,6 +25,7 @@ import math
 import argparse
 from rootpy import ROOT 
 from rootpy.io import root_open 
+from rootpy.io import Directory
 from rootpy.plotting import F1, Hist, HistStack, Canvas, Legend, Pad
 from rootpy.plotting.shapes import Line,Arrow
 from rootpy.plotting.utils  import draw
@@ -37,6 +38,7 @@ from rootpy.tree import Tree
 
 from regiondefinitions import retreiveRegionInformation
 from samples import sampleConfiguration
+from collections import OrderedDict
 from itertools import izip
 from decimal import Decimal
 import time 
@@ -97,9 +99,7 @@ canvasheight= 1600
 
 MeVlist = ['IaPP/(IaPP+IbPP)','IbPP/(IaPP+IbPP)','IaPa/(IaPa+IbPb)','IbPb/(IaPa+IbPb)','IaLAB/(IaLAB+IbLAB)','IbLAB/(IaLAB+IbLAB)','dphilep1MET','dphilep2MET','dphilep3MET','R_HT4PP_H4PP','dphiVP_VR','RPT_HT5PP_VR','R_minH2P_minH3P_VR','nJet30','mu','RPT_HT4PP','RISR','dphiISRI','R_HT5PP_H5PP','RPT_HT5PP','R_H3Pa_H3Pb','dangle','R_minH2P_minH3P','dphiPPV','cosPP','minDphi','dphiVP',"met_phi","jet1Eta",'lept1Eta',"jet1Phi","lept1Phi","jet2Eta",'lept2Eta',"jet2Phi","lept2Phi","jet3Eta",'lept3Eta',"jet3Phi","lept3Phi","jet4Eta","jet4Phi","EventNumber","NjS","NjISR","nBJet20_MV2c10_FixedCutBEff_77","mu","is2Lep2Jet","is2L2JInt","dRll"
         ]
-###############################################################################
-############################################################################### Style 
-###############################################################################
+
 style = get_style('ATLAS')
 titlesize=25
 labelscale = 0.025
@@ -118,36 +118,8 @@ labelmargin=0.20 #Labeling
 
 #==================== EDIT THESE ========================#
 sqrts  = 13
-# Region = str(sys.argv[3])
-# Region = Region
 
-
-linestylelist      = ['solid','longdash','dotted','dashed','dashdot','verylongdashdot','longdashdotdotdot']
-linestylelistReset = ['solid','longdash','dotted','dashed','dashdot','verylongdashdot','longdashdotdotdot']
-#colorlist = ['#ffe259','#fee8a3','green']
-#colorlist      = ["#FFF59D","#3F5aB5","#64B5F6","#FFB74D","#FF8A65","#B0BEC5","#66BB6A","#78909C"]
-colorlist      = ["#FFF59D","#4DB6AC","#3F5aB5","#64B5F6","#FFB74D","#FF8A65","#B0BEC5","#66BB6A","#78909C"]
-#colorlistReset = ["#FFF59D","#3F5aB5","#64B5F6","#FFB74D","#FF8A65","#B0BEC5","#66BB6A","#78909C"]
-colorlistReset = ["#FFF59D","#4DB6AC","#3F5aB5","#64B5F6","#FFB74D","#FF8A65","#B0BEC5","#66BB6A","#78909C"]
-
-
-sig_color      = ('chocolate','lawngreen','red')
-
-#==================== Input Files =======================# 
-
-#backgroundMC_location= str(sys.argv[1])
-
-#signalMC_location =str(sys.argv[1])
-#data_location=str(sys.argv[1])
-#outputfolder = str(sys.argv[2])
-#sampleLocation = str(sys.argv[1])
-
-
-#DataPeriods = '1516'
-#doNminus1 = 0
-
-sampleLocationDictionary = {}
-
+sampleLocationDictionary = OrderedDict()
 sampleLocationDictionary['1516'] = "samplesnew"
 sampleLocationDictionary['17'] = "samples2017"
 sampleLocationDictionary['18'] = "samples2018"
@@ -164,21 +136,18 @@ LegendExtraInformation = "Relative"
 #LegednExtraInformation = "Absolute"
 
 
-#samplesExist = os.path.isfile(samplelist)
-#samplesFile = samplelist
-
-MC = ("MC","BKG","Mc","mc","MonteCarlo","MC2017","MC2018")
-DD = ("DD","ZJETS","Zjets","zjets")
-DATA =("DATA","data","Data","DaTa","DaTA","dAtA","dATA","DATA2017","DATA2018")
-SIGNAL  =("SIG","sig","Sig","SIg","sIg","sIG","siG","SiG","SIGNAL")
-PLOT =("plot","Plot","PLot","PLOt","PLOT","PlOt","PlOT","PloT","PLoT")
-
+#MC = ("MC","BKG","Mc","mc","MonteCarlo","MC2017","MC2018")
+#DD = ("DD","ZJETS","Zjets","zjets")
+#DATA =("DATA","data","Data","DaTa","DaTA","dAtA","dATA","DATA2017","DATA2018")
+#SIGNAL  =("SIG","sig","Sig","SIg","sIg","sIG","siG","SiG","SIGNAL")
+#PLOT =("plot","Plot","PLot","PLOt","PLOT","PlOt","PlOT","PloT","PLoT")
+BLINDEDLIST = ("SR2L_LOW", "SR2L_INT", "SR2L_HIGH","SR2L_ISR","SR3L_LOW","SR3L_INT","SR3L_HIGH","SR3L_ISR")
 VVCRlist =("CR2L-VV","CR2L_ISR-VV","CR3L-VV","CR3L_ISR-VV")
 TOPCRlist = ("CR2L-TOP","CR2L_ISR-TOP")
 CRlist = VVCRlist + TOPCRlist
 ABCDlist = ("A","B","D","VRC","VRD")
 SRlist = ("SR2L_LOW", "SR2L_INT", "SR2L_HIGH","SR2L_ISR","SR3L_LOW","SR3L_INT","SR3L_HIGH","SR3L_ISR")
-BLINDEDLIST = ("SR2L_LOW", "SR2L_INT", "SR2L_HIGH","SR2L_ISR","SR3L_LOW","SR3L_INT","SR3L_HIGH","SR3L_ISR")
+
 if "2L" in Region:
     if "CR2L-VV" in Region:
         variable_list_file = "variablelist_2LVR.txt"
@@ -219,6 +188,11 @@ else:
 sampletest = ['data1516','ttbar1516','singleTop1516','topOther1516','Zjets1516','Wjets1516','diboson1516','triboson1516','higgs1516','lowMassDY1516']
 sampleDictionary = sampleConfiguration(DataPeriods)
 
+samplestyleDictionary = {
+    'bkg' : {'plottype':'hist','filltype':'solid','linecolor':'black','linewidth':0},
+    'sig' : {'plottype':'hist','filltype':'0'    ,'linecolor':'red'  ,'linewidth':5},
+    'data': {'plottype':'EP'  ,'filltype':'0'    ,'linecolor':'black','linewidth':5}
+}
 
 #==================== LOAD FILES ============================#
 
@@ -231,21 +205,6 @@ with open(variable_list_file) as f:
     xtitle_list           = input[4]
     ytitle_list           = input[5]
     variable_bool_list    = input[6]
-
-# if samplesExist:
-#     with open(samplelist) as f:
-#         input = zip(*[line.split() for line in f])
-#         sampleList  = input[0]
-#         sampleNames = input[1]
-#         sampleTypes = input[2]
-#         sampleBools = input[3]
-
-
-samplestyleDictionary = {
-    'bkg' : {'plottype':'hist','filltype':'solid','linecolor':'black','linewidth':0},
-    'sig' : {'plottype':'hist','filltype':'0'    ,'linecolor':'red'  ,'linewidth':5},
-    'data': {'plottype':'EP'  ,'filltype':'0'    ,'linecolor':'black','linewidth':5}
-}
 
 
 def RegionYrange(Region):
@@ -351,8 +310,7 @@ def plotsignalobjects(backgroundstacks):
     for LegendEntry in backgroundstacks:
         if 'Signal' in LegendEntry:
             backgroundstacks[LegendEntry].sum.Draw("Hist SAME X0")
-    #for signal in signals:
-    #   signal.Draw("Hist SAME X0")
+
 
 def plotdataobjects(data):
     datastack.sum.SetMarkerStyle('circle')
@@ -508,7 +466,7 @@ def generatedatalegend(inputdatastack,inputstack):
 
         if plotData:
             if Region not in BLINDEDLIST:
-                datalegend.AddEntry(inputdatastack.sum,label = "Data (" + str(round(inputdatastack.sum.integral(overflow=True),1)) +")",style ="EP")
+                datalegend.AddEntry(inputdatastack.sum,label = "Data [" + str(round(inputdatastack.sum.integral(overflow=True),1)) +"]",style ="EP")
 
         errorband = inputstack.sum.Clone()
         errorband.SetLineWidth(10)
@@ -516,9 +474,9 @@ def generatedatalegend(inputdatastack,inputstack):
         errorband.SetFillColor(922)
 
         if Region == "A" or Region == "B" or  Region== "D" or Region== "VRC" or Region =="VRD":
-            datalegend.AddEntry(inputstack.sum, label = "SM (" + str(round(float(inputstack.sum.integral(overflow=True)),1)) + "\pm" + str(round(float(inputstack.sum.integral(error= True, overflow=True)[1]),1)   ) + ")",style = "L")
+            datalegend.AddEntry(inputstack.sum, label = "SM [" + str(round(float(inputstack.sum.integral(overflow=True)),1)) + "\pm" + str(round(float(inputstack.sum.integral(error= True, overflow=True)[1]),1)   ) + "]",style = "L")
         else:
-            datalegend.AddEntry(inputstack.sum, label = "SM (" + str(round(float(inputstack.sum.integral(overflow=True)),1)) + ")",style = "L")
+            datalegend.AddEntry(inputstack.sum, label = "SM [" + str(round(float(inputstack.sum.integral(overflow=True)),1)) + "]",style = "L")
         datalegend.Draw("SAME")
 
 
@@ -551,151 +509,51 @@ def generatebackgroundlegend(backgroundstacks):
         backgroundyield,backgrounderror = backgroundstacks[LegendGroup].sum.integral(error=True,overflow=True)
         if LegendExtraInformation == "Relative" and totalyield!=0:
             relativeyield = str(round(100*backgroundyield/totalyield,1))
-            legend.AddEntry(backgroundstacks[LegendGroup].sum,label=LegendGroup + " (" + relativeyield + "%)",style="F" )
+            legend.AddEntry(backgroundstacks[LegendGroup].sum,label=LegendGroup + " [" + relativeyield + "%]",style="F" )
         elif LegendExtraInformation == "Absolute":
-            legend.AddEntry(background,label =backgroundname + " (" + str(round(backgroundyield,1)) +")",style="F")
+            legend.AddEntry(backgroundstacks[LegendGroup].sum,label =LegendGroup + " (" + str(round(backgroundyield,1)) +")",style="F")
         else:
-            legend.AddEntry(background,label =backgroundname ,style="F")
+            legend.AddEntry(backgroundstacks[LegendGroup].sum,label =LegendGroup ,style="F")
 
     legend.Draw("SAME");
 
-
-def colorAllocator(rootfile,colorpalette):
-    myLighterBlue='powderblue'
-    myLightBlue  ='#9ecae1'
-    myMediumBlue ='#0868ac'
-    myDarkBlue   ='#08306b'
-
-    # Greens
-    myLightGreen   ='#c7e9c0'
-    myMediumGreen  ='#41ab5d'
-    myDarkGreen    ='#006d2c'
-
-    # Oranges
-    myLighterOrange='#ffeda0'
-    myLightOrange  ='#fec49f'
-    myMediumOrange ='#fe9929'
-
-    # Greys
-    myLightestGrey='#f0f0f0'
-    myLighterGrey='#e3e3e3'
-    myLightGrey  ='#969696'
-
-    # Pinks
-    myLightPink = '#fde0dd'
-    myMediumPink = '#fcc5c0'
-    myDarkPink = '#dd3497'
-    sampleFillcolor ='black'
-
-    rjhiggs ="391"
-    rjwjets ="922"
-    rjvgamma ='627'
-    rjttbar  = '797'
-    rjvvv = '598'
-    rjvv  = '851'
-    rjzjets = '410'
-    rjDY = '845'
-    rjtopother = '895'
-    rjsingletop= '806'
-
-    if colorpalette == "HIGGSINO":
-        if("higgs" in rootfile):
-            sampleFillcolor = myLightGrey
-        elif("singleTop" in rootfile):
-            sampleFillcolor =  myLighterBlue
-        elif("topOther" in rootfile):
-            sampleFillcolor =  myLightBlue
-        elif("triboson" in rootfile):
-            sampleFillcolor = myLightOrange
-        elif("Vgamma" in rootfile):
-            sampleFillcolor = myLighterOrange
-        elif("Wjets" in rootfile):
-            sampleFillcolor = myLightGreen
-        elif("Zjets" in rootfile):
-            sampleFillcolor = myMediumGreen
-        elif("DY" in rootfile):
-            sampleFillcolor = myLighterGrey
-        elif("diboson" in rootfile):
-            sampleFillcolor = myMediumOrange
-        elif("ttbar_dilep" in rootfile):
-            sampleFillcolor = myMediumBlue
- 
-    elif colorpalette == "RJ":
-        if("higgs" in rootfile):
-            sampleFillcolor = rjhiggs
-        elif("singleTop" in rootfile):
-            sampleFillcolor =  rjsingletop
-        elif("topOther" in rootfile):
-            sampleFillcolor = rjtopother
-        elif("triboson" in rootfile):
-            sampleFillcolor = rjvvv
-        elif("Vgamma" in rootfile):
-            sampleFillcolor = rjvgamma
-        elif("Wjets" in rootfile):
-            sampleFillcolor = rjwjets
-        elif("Zjets" in rootfile):
-            sampleFillcolor = rjzjets
-        elif("DY" in rootfile):
-            sampleFillcolor = rjDY
-        elif("diboson" in rootfile):
-            sampleFillcolor = rjvv
-        elif("ttbar_dilep" in rootfile):
-            sampleFillcolor = rjttbar
-
-    return sampleFillcolor
-
-
+##################################################################################################################
 def retreiveTree(sample):
     Filename = sampleDictionary[sample]['filename']
     rootfile  = rootfileDictionary[sample]
 
-    
     if("data15" in Filename):
-        print "[TREES][LOADING]: DATA15"
         tree = rootfile.data1516
     elif("data17" in Filename):
-        print "[TREES][LOADING]: DATA17"
         tree = rootfile.data17
     elif("data18" in Filename):
-        print "[TREES][LOADING]: DATA18"
         tree = rootfile.data
     elif("higgs" in Filename):
-        print "[TREES][LOADING]: HIGGS"
         tree = rootfile.higgs_NoSys
     elif("singleTop" in Filename):
-        print "[TREES][LOADING]: SINGLETOP"
         tree = rootfile.singleTop_NoSys
     elif("topOther" in Filename):
-        print "[TREES][LOADING]: TOPOTHER"
         tree = rootfile.topOther_NoSys
     elif("triboson" in Filename):
-        print "[TREES][LOADING]: TRIBOSON"
         tree = rootfile.triboson_NoSys
     elif("Vgamma" in Filename):
-        print "[TREES][LOADING]: VGAMMA"
         tree = rootfile.Vgamma_NoSys
     elif("Wjets" in Filename):
-        print "[TREES][LOADING]: WJETS"
         tree = rootfile.Wjets_NoSys
     elif("Zjets" in Filename):
-        print "[TREES][LOADING]: ZJETS"
         tree = rootfile.Zjets_NoSys
     elif("DY" in Filename):
-        print "[TREES][LOADING]: LOWMASSDY"
         tree = rootfile.lowMassDY_NoSys
     elif("diboson" in Filename):
-        print "[TREES][LOADING]: DIBOSON"
         tree = rootfile.diboson_NoSys
     elif("ttbar_dilep" in Filename):
-        print "[TREES][LOADING]: TTBAR_DILEP"
         tree = rootfile.ttbar_dilep_NoSys
     elif("ttbar" in Filename):
-        print "[TREES][LOADING]: TTBAR"
         tree = rootfile.ttbar_NoSys
 
     return tree
 
-
+##############################################################################################################################
 def drawPlotInformation(DataPeriods,atlasStatus,RegionLabel):
         atlaslabel('#it{#bf{ATLAS}} ' + atlasStatus)
         if(DataPeriods == '1516'):
@@ -721,16 +579,7 @@ def drawPlotInformation(DataPeriods,atlasStatus,RegionLabel):
         else:
             SRlabel( RegionLabel )
 
-
-# def inputSampleType(isType):
-#     if isType==0:
-#         isBKG=True
-#     elif isType ==1:
-#         isSIGNAL=True
-#     elif isType ==2:
-#         isDATA=True
-#     return isBKG,isSIGNAL,isDATA
-
+########################################################################################################################
 def sampleStyleFunc(temphist,Type):
     fillcolor = sampleDictionary[sample]['fillcolor']
     temphist.drawstyle = samplestyleDictionary[Type]['plottype']
@@ -740,8 +589,7 @@ def sampleStyleFunc(temphist,Type):
     temphist.linewidth = samplestyleDictionary[Type]['linewidth']
     temphist.linestyle = 'solid'
 
-
-
+########################################################################################################################
 def produceRegionBreakdown(backgroundstacks,stack,datastack,Region):
     cutflowstring = "Samples:"
     yieldstring = Region
@@ -781,20 +629,35 @@ def produceRegionBreakdown(backgroundstacks,stack,datastack,Region):
 
     return cutflowstring,yieldstring
 
-
-
-
-
+##############################################################################################################################
 
 
 t1 = time.time()
 
 print "[PREROOTFILE]" + str(round(t1 - t0,2)) + "seconds"
 
-sampleDict = {}
-treeDict = {}
-treeDict2 = {}
-rootfileDictionary = {}
+
+sampleDict = OrderedDict()
+
+
+
+treeDict = OrderedDict()
+treeDict2 = OrderedDict()
+rootfileDictionary =  OrderedDict()
+
+RegionLabel= retreiveRegionInformation(Region)[0]
+Cutlist    = retreiveRegionInformation(Region)[1]
+Cutnames   = retreiveRegionInformation(Region)[2]
+
+
+total = Cut("1")
+for cut in Cutlist:
+    if donminus1:
+        if variable in cut:continue 
+        total = total & cut 
+    else: 
+        total = total & cut 
+
 for sample in sampleDictionary:
     #print "sample: " + sample
     Year        = sampleDictionary[sample]['year']
@@ -806,20 +669,30 @@ for sample in sampleDictionary:
     print "[ROOTFILE LOADING][" + sample + "]" + str(round(t2 - t0,2)) + "seconds"
 
     treeDict[sample] = retreiveTree(sample)
-    treeDict2[sample] = retreiveTree(sample)
+    #treeDict2[sample] = retreiveTree(sample)
+
+    #treeDict[sample] = treeDict2[sample].CopyTree(total)
+    #del treeDict2[sample]
+    #treeDict[sample] = treeDict2[sample]
+    #asrootpy(treeDict[sample])
+    
+    #elist = ROOT.TEntryList("name","title",treeDict[sample])
+    #treeDict[sample].Draw(">>elist",total,"entrylist")
+    #ROOT.gDirectory
+    #treeDict[sample].SetEntryList(elist)
+    #print "passed: " + str(elist.GetN())
 
 
 
 
 
-RegionLabel= retreiveRegionInformation(Region)[0]
-Cutlist    = retreiveRegionInformation(Region)[1]
-Cutnames   = retreiveRegionInformation(Region)[2]
+
+
+
 
 skimmed = 0
 for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,xmin_list,xmax_list,nbins_list,xtitle_list,ytitle_list,variable_bool_list):
     if variable_bool == 'Plot':    
-        #print "[VARIABLE][" + variable + "]"
         tn = time.time()
         print "[VARIABLE][" + variable  + "]" + str(round(tn - t0,0)) + "seconds"
  
@@ -868,27 +741,17 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
 
         stack.SetMinimum(yminimum)
         stack.SetMaximum(ymaximum)
-        samples = []
-        backgrounds = []
-        signals = []
-        data    = []
-        stackyield = 0
-        errorsum   = 0 
-        
-        backgroundstacks = {}
-       # print "pre sampleDictionary"
+
+        backgroundstacks = OrderedDict()
+        background = []
         for sample in sampleDictionary:
             if Region in BLINDEDLIST and sample is 'Data': continue 
             LegendEntry = sampleDictionary[sample]['legend']
             Type = sampleDictionary[sample]['type']
             backgroundstacks[LegendEntry] = HistStack()
-        #    print "post initialisation of backgroundstakcs"
 
-        #"pre second sample dictionary"
         for sample in sampleDictionary:
-        #    print "pre blinded check"
-            if Region in BLINDEDLIST and sample is 'Data': continue 
-            #print "[BACKGROUND][" + sample + "]" 
+
             tn = time.time()
             print "[DRAWING][" + sample  + "]" + str(round(tn - t0,0)) + "seconds"
  
@@ -902,6 +765,7 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
 
             Luminosity = LuminosityDictionary[Type][Year]
             Weight     = WeightDictionary[Type]
+            if Region in BLINDEDLIST and sample is 'Data': continue 
             if Region in BLINDEDLIST and LegendEntry == 'Data':continue
             if Region in BLINDEDLIST and Type        == 'data':continue
             if Region in BLINDEDLIST and "data" in rootfile: continue 
@@ -913,52 +777,11 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
                 else: 
                     total = total & cut 
 
-            if donminus1 == 0 and skimmed == 0 :
-                #print "skimming"
-                #treeDict[sample].CopyTree(total)
-                #mylistof_events = ROOT.TEntryList()
-                #mylist = ROOT.TEntryList()
-                #print "treeEntries1" + str(treeDict[sample].GetEntries())
-                #mylist = ROOT.R.TEntryList("mylist","mylist")
-                #treeDict[sample].Draw(">>mylist",total,"entrylist")
-                #mylist.Print()
-               # print "type: " + str(type(treeDict[sample]))
-                print "DEFAULT: " + str(treeDict[sample].GetEntries())
-                print "type: " + str(type(treeDict[sample]))
-                #treeDict2[sample] =
-                #if Year == '1516' or Year == '18' or Year == "17":
-                #    treeDict[sample] = treeDict[sample].CopyTree(total)
-                #    print "type: " + str(type(treeDict[sample]))
-                #    asrootpy(treeDict[sample])
-                #    print "type: " + str(type(treeDict[sample]))
-                    #treeDict[sample] = treeDict2[sample]
-                    #asrootpy(treeDict[sample])
-                    #treeDict[sample] = treeDict2[sample]
-                    #print "type: " + str(type(treeDict2[sample]))
-                    #print "type2: " + str(type(treeDict2[sample]))
-                #    print "SKIMMED:  " + str(treeDict[sample].GetEntries())
-                #treeDict[sample] = treeDict2[sample]
-                #treeDict[sample].CopyTree(total)
-                #mylistof_events = treeDict[sample].GetEntryList()
-                #ROOT.R.TEntryList("mylist",mylist)
-                #print str(type(mylist))
-                #print str(mylist.GetN())
-                #ROOT.R.gDirectory.GetObject("mylist",mylist)
-                #ROOT.R.gDirectory.ls()
-                #GetObject("mylistof_events",mylistof_events)
-                #print str(mylist.GetN())
-                #mylist.Print()
-                #,"entrylist")
-                #mylistof_events.SetReapplyCut()
-               # treeDict[sample].SetEntryList(mylistof_events)
-                #treeDict[sample].SetEntriesToProcess(mylistof_events)
-                #treeDict[sample].SetEventList(mylist)
-                #treeDict[sample].GetEntriesToProcess(mylistof_events)
-                print "treeEntries2" + str(treeDict[sample].GetEntries())
- 
-                
+            #if donminus1 == 0 and skimmed == 0 :
+
 
             SelectionCriteria = Cut(Luminosity) * Cut(Weight) * total
+
             histogram = "Hist(" + nbins+ "," + xmin +"," + xmax+ ")"
 
 
@@ -967,7 +790,6 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
                 temphist = Hist(int(nbins),float(xmin),float(xmax))
             else: 
                 temphist = treeDict[sample].Draw(variable + ">>" + histogram , selection = SelectionCriteria)
-
 
                 sampleStyleFunc(temphist,Type)
                 
@@ -978,13 +800,8 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
            # print "prebackgroundstacks"
             backgroundstacks[LegendEntry].Add(temphist.Clone())
 
-        #  for stackGroup in backgroundstacks:
-        #      for hist in stackGroup:
-        #          for i in range(1,int(nbins)+1):
-        #              if hist.GetBinContent(i) < 0:
-        #                  hist.SetBinContent(i) = 0
-        skimmed = 1 
 
+        skimmed = 1 
 
         for key in backgroundstacks:
             print "key: " + str(key )
@@ -1077,17 +894,12 @@ for (variable,xmin,xmax,nbins,xtitle,ytitle,variable_bool) in zip(variable_list,
         histpad.SetLogy(0)
         stack.SetMinimum(0.0)
         stack.SetMaximum(3*stack.sum.GetMaximum())
-        #canvas.Print(dataoutputfolder + "/" + Region + "/lin_"+ filenamevariable+ "_" + Region + "_"+systematics+".png")
+        canvas.Print(dataoutputfolder + "/" + Region + "/lin_"+ filenamevariable+ "_" + Region + "_"+systematics+".png")
        # canvas.Print(dataoutputfolder + "/" + Region + "/lin_"+ filenamevariable+ "_" + Region + "_"+systematics+".pdf")
       #  canvas.Print(dataoutputfolder + "/" + Region + "/lin_"+ filenamevariable+ "_" + Region + "_"+systematics+".eps")
 
         tn = time.time()
         #print "[CANVAS][PLOTTED]"
         print "[CANVAS][PLOTTED]" + str(round(tn - t0,0)) + "seconds"
-        t0 = time.time() 
-
-
-
-
-
+        #t0 = time.time() 
 
