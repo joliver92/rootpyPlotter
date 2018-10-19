@@ -87,12 +87,12 @@ def variableDictionary(Region,doBreakdown):
 
 
   cutflow = OrderedDict([
-    ('nJet20'                        ,{'latex':"n^{20}_{J}"           ,'units':''   ,'nbins':6,'xmin':0,'xmax':6})
+    ('nJet20'                        ,{'latex':"n^{20}_{J}"           ,'units':'1'   ,'nbins':6,'xmin':0,'xmax':6})
   ])
   
   variableDictionary = OrderedDict()
-  variableDictionary.update(jetvariables)
-  variableDictionary.update(metvariables)
+  #variableDictionary.update(jetvariables)
+  #variableDictionary.update(metvariables)
 
   if "CR2L-VV" or "VR2L_ISR-VV" or "CR2L_ISR-VV" in Region: 
       variableDictionary.update(leptonvariables_VR)
